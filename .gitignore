@@ -135,7 +135,6 @@ dmypy.json
 
 # folders
 /images*
-/models
 /test_sequence
 /Depth-Anything
 *.avi

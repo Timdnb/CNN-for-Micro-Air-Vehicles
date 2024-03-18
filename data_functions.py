@@ -48,7 +48,7 @@ def generate_labels(images_dir, images_final_dir, images_with_label, mirror=True
         dirs = [img_left.mean(), img_center.mean(), img_right.mean()]
         
         # print control action
-        action = dirs.index(min(dirs))
+        action = dirs.index(min(dirs)) # CHECK THISSSSS !!!!!!! A?SDASI!!!!
         if action == 0:
             images_with_label.loc[len(images_with_label)] = [os.path.join(images_final_dir, filename), 0, 0, 1]
             images_with_label.loc[len(images_with_label)] = [os.path.join(images_final_dir, filename.strip(".jpg") + "_mirror.jpg"), 1, 0, 0]

@@ -135,7 +135,9 @@ dmypy.json
 
 # folders
 /images*
-/test_sequence
+/test_sequence*
 /Depth-Anything
 *.avi
 *.csv
+
+/wandb

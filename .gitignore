@@ -134,9 +134,9 @@ dmypy.json
 .idea/*
 
 # folders
-/images*
-/test_sequence*
+/*images*
 /Depth-Anything
+/test_sequence*
 *.avi
 *.csv
 

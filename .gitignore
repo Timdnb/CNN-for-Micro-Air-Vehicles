@@ -141,3 +141,5 @@ dmypy.json
 *.csv
 
 /wandb
+/lightning*
+/MAV-CNN-Project

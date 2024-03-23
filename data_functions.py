@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-def generate_labels(images_dir, images_final_dir, labeled_images, mirror=True, realistic=False, print_output=False):
+def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=5, top_bottom_crop=0.25, mirror=True, realistic=False, print_output=False):
     """
     Generate control actions for each image in the folder
 
@@ -39,33 +39,32 @@ def generate_labels(images_dir, images_final_dir, labeled_images, mirror=True, r
 
         # get dimensions
         img_x = img_depth.shape[0]
-        # img_y = img_depth.shape[1]
+        img_y = img_depth.shape[1]
 
-        # split image into 3 regions
-        img_left = img_depth[0:img_x//3] # img_depth[0:img_x//3, img_y//3:img_y]
-        img_center = img_depth[img_x//3:2*img_x//3] # img_depth[img_x//3:2*img_x//3, img_y//3:img_y]
-        img_right = img_depth[2*img_x//3:img_x] # img_depth[2*img_x//3:img_x, img_y//3:img_y]
+        # split image into x regions
+        img_regions = np.array_split(img_depth, n_regions, axis=0)
+        img_regions = [img_region[:,int(img_y*top_bottom_crop):int(img_y*(1-top_bottom_crop))] for img_region in img_regions]
+        mean_depths = [img_region.mean() for img_region in img_regions]
 
-        # calculate average depth for each region
-        mean_depths = [img_left.mean(), img_center.mean(), img_right.mean()]
-        
+        # # show image regions
+        # print(mean_depths)
+        # for i, img_region in enumerate(img_regions):
+        #     cv2.imshow(str(i), img_region)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
         # print control action
-        action = mean_depths.index(min(mean_depths))
-        if action == 0:
-            labeled_images.loc[len(labeled_images)] = [os.path.join(images_final_dir, filename), 1, 0, 0]
-            if mirror:
-                labeled_images.loc[len(labeled_images)] = [os.path.join(images_final_dir, filename.strip(".jpg") + "_mirror.jpg"), 0, 0, 1]
-        elif action == 1:
-            labeled_images.loc[len(labeled_images)] = [os.path.join(images_final_dir, filename), 0, 1, 0]
-            if mirror:
-                labeled_images.loc[len(labeled_images)] = [os.path.join(images_final_dir, filename.strip(".jpg") + "_mirror.jpg"), 0, 1, 0]
-        else:
-            labeled_images.loc[len(labeled_images)] = [os.path.join(images_final_dir, filename), 0, 0, 1]
-            if mirror:
-                labeled_images.loc[len(labeled_images)] = [os.path.join(images_final_dir, filename.strip(".jpg") + "_mirror.jpg"), 1, 0, 0]
-
-        if print_output:
-            print(action)
+        action = min(mean_depths)
+        action_list = [1 if mean_depth == action else 0 for mean_depth in mean_depths]
+        data_row = [os.path.join(images_final_dir, filename)]
+        data_row.extend(action_list)
+        labeled_images.loc[len(labeled_images)] = data_row
+        
+        if mirror:
+            action_list_mirror = action_list[::-1]
+            data_row_mirror = [os.path.join(images_final_dir, filename.strip(".jpg") + "_mirror.jpg")]
+            data_row_mirror.extend(action_list_mirror)
+            labeled_images.loc[len(labeled_images)] = data_row_mirror
 
     return labeled_images
 
@@ -82,7 +81,7 @@ def make_realistic(img):
     img = cv2.GaussianBlur(img, (kernel, kernel), 0)
 
     # darken image with random factor
-    darken = np.random.uniform(0.6, 1.0)
+    darken = np.random.uniform(0.8, 1.0)
     img = cv2.addWeighted(img, darken, img, 0, 0)
 
     return img

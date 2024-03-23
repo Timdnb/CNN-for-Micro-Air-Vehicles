@@ -39,12 +39,12 @@ def generate_labels(images_dir, images_final_dir, labeled_images, mirror=True, r
 
         # get dimensions
         img_x = img_depth.shape[0]
-        img_y = img_depth.shape[1]
+        # img_y = img_depth.shape[1]
 
         # split image into 3 regions
-        img_left = img_depth[0:img_x//3, img_y//3:img_y]
-        img_center = img_depth[img_x//3:2*img_x//3, img_y//3:img_y]
-        img_right = img_depth[2*img_x//3:img_x, img_y//3:img_y]
+        img_left = img_depth[0:img_x//3] # img_depth[0:img_x//3, img_y//3:img_y]
+        img_center = img_depth[img_x//3:2*img_x//3] # img_depth[img_x//3:2*img_x//3, img_y//3:img_y]
+        img_right = img_depth[2*img_x//3:img_x] # img_depth[2*img_x//3:img_x, img_y//3:img_y]
 
         # calculate average depth for each region
         mean_depths = [img_left.mean(), img_center.mean(), img_right.mean()]

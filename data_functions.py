@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=5, top_bottom_crop=0.25, mirror=True, realistic=False, print_output=False):
+def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=5, top_bottom_crop=0.25, mirror=True, realistic=False):
     """
     Generate control actions for each image in the folder
 
@@ -46,14 +46,7 @@ def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=5, t
         img_regions = [img_region[:,int(img_y*top_bottom_crop):int(img_y*(1-top_bottom_crop))] for img_region in img_regions]
         mean_depths = [img_region.mean() for img_region in img_regions]
 
-        # # show image regions
-        # print(mean_depths)
-        # for i, img_region in enumerate(img_regions):
-        #     cv2.imshow(str(i), img_region)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-
-        # print control action
+        # get control action and one-hot encode
         action = min(mean_depths)
         action_list = [1 if mean_depth == action else 0 for mean_depth in mean_depths]
         data_row = [os.path.join(images_final_dir, filename)]

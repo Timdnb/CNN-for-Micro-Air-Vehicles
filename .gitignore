@@ -137,7 +137,5 @@ dmypy.json
 /*images*
 *.csv
 /checkpoints
-
 /wandb
-/lightning*
 /MAV-CNN-Project

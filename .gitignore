@@ -135,10 +135,8 @@ dmypy.json
 
 # folders
 /*images*
-/Depth-Anything
-/test_sequence*
-*.avi
 *.csv
+/checkpoints
 
 /wandb
 /lightning*

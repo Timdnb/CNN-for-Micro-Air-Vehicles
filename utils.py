@@ -6,7 +6,7 @@ import torch
 from torchvision.io import read_image
 from torchvision.transforms.functional import convert_image_dtype
 
-def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=3, top_bottom_crop=0.25, mirror=True, realistic=False):
+def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=3, top_bottom_crop=0, mirror=True, realistic=False):
     """
     Generate control actions for each image in the folder
 

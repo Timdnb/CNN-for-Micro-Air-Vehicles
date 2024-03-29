@@ -81,7 +81,7 @@ def make_realistic(img):
     img = cv2.GaussianBlur(img, (kernel, kernel), 0)
 
     # darken image with random factor
-    darken = np.random.uniform(0.8, 1.0)
+    darken = np.random.uniform(0.8, 1.2)
     img = cv2.addWeighted(img, darken, img, 0, 0)
 
     return img

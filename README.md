@@ -7,7 +7,7 @@ This notebook can be used to generate a labeled dataset. The only prerequisite t
 ### Notebook: `CNN_training`
 This notebook takes care of the training of CNNs. All the hard work has been done for you, all there is left to do for you is tune the hyperparameters and find the network that best suits your applications. At the end of the notebook it is also explained how to deploy the CNN on a drone using Paparazzi.
 
-### Inference examples
+### Inference example
 The AE4317 course includes a competition in which student teams try to fly as much distance in a contained area with obstacles. The CNN developed using these notebooks was used in this competition and was succesfully able to avoid obstacles. An example of inference while flying can be seen below, there the bars in the bottom left correspond to 'left', 'forward' and 'right'.
 
 ![inference](assets/50190486.jpg)

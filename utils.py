@@ -29,6 +29,10 @@ def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=3, t
         img_normal = cv2.imread(f)
         img_depth = cv2.imread(f_depth)
 
+        # Check if files are valid
+        if img_normal is None or img_depth is None:
+            assert False, f"Error reading {f} or {f_depth}"
+
         # Make realistic and or mirror image
         if realistic:
             img_normal = make_realistic(img_normal)

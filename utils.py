@@ -42,7 +42,7 @@ def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=3, t
         # Save images
         cv2.imwrite(os.path.join(images_final_dir, filename), img_normal)
         if mirror:
-            cv2.imwrite(os.path.join(images_final_dir, filename.strip(".jpg") + "_mirror.jpg"), img_normal_mirror)
+            cv2.imwrite(os.path.join(images_final_dir, filename.strip(".jpg") + "_mirrored.jpg"), img_normal_mirror)
 
         # Get dimensions
         img_x = img_depth.shape[0]
@@ -62,7 +62,7 @@ def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=3, t
         
         if mirror:
             action_list_mirror = action_list[::-1]
-            data_row_mirror = [os.path.join(images_final_dir, filename.strip(".jpg") + "_mirror.jpg")]
+            data_row_mirror = [os.path.join(images_final_dir, filename.strip(".jpg") + "_mirrored.jpg")]
             data_row_mirror.extend(action_list_mirror)
             labeled_images.loc[len(labeled_images)] = data_row_mirror
 

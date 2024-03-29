@@ -134,8 +134,8 @@ dmypy.json
 .idea/*
 
 # folders
-/*images*
-*.csv
+/*_images*/
+/*_test*
 /checkpoints
 /wandb
 /MAV-CNN-Project

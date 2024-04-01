@@ -16,6 +16,4 @@ This notebook takes care of the training of CNNs. All the hard work has been don
 ### Inference example
 The AE4317 course includes a competition in which student teams try to fly as much distance in a contained area with obstacles. The CNN developed using these notebooks was used in this competition and was succesfully able to avoid obstacles. An example of inference while flying can be seen below; the bars in the bottom left correspond to 'left', 'forward' and 'right'.
 
-<center>
-  <img width="450" alt="fidget spinner" src="assets/inference_example.jpg">
-</center>
+![Inference](assets/inference_example.jpg)

@@ -6,7 +6,7 @@ Throughout the course I have developed two notebooks which guide you through the
 ### Dataset generation:
 **Notebook: `Dataset_generation.ipynb`**
 
-This notebook can be used to generate a labeled dataset. The only prerequisite to use this notebook is to have an image dataset that is representative of the environment in which your drone will fly. It will then label the images based on monocular depth maps generated using [Depth-Anything](https://github.com/LiheYoung/Depth-Anything). If you already have a labeled dataset, you can move on to `CNN_training.ipynb`. Be aware that this notebook assumes the dataset format that is used in `Dataset_generation.ipynb`. Alternatively, I have uploaded my dataset containing 27754 images to Hugging Face. The option to use this dataset is included in the other notebook.
+This notebook can be used to generate a labeled dataset. The only prerequisite to use this notebook is to have an image dataset that is representative of the environment in which your drone will fly. It will then label the images based on monocular depth maps generated using [Depth-Anything](https://github.com/LiheYoung/Depth-Anything). If you already have a labeled dataset, you can move on to `CNN_training.ipynb`. Be aware that this notebook assumes the dataset format that is used in `Dataset_generation.ipynb`. Alternatively, I have uploaded my dataset containing 27754 images to Hugging Face, see [here](https://huggingface.co/datasets/Timdb/AE4317-cyberzoo-tudelft). The option to use this dataset is included in the other notebook.
 
 ### Training and tuning of CNN:
 **Notebook: `CNN_training.ipynb`**

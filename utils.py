@@ -2,7 +2,10 @@ import cv2
 import os
 import numpy as np
 from tqdm import tqdm
+import pandas as pd
 import torch
+from torch.utils.data import Dataset
+from torchvision import transforms
 from torchvision.io import read_image
 from torchvision.transforms.functional import convert_image_dtype
 import matplotlib.pyplot as plt
@@ -141,3 +144,36 @@ def calc_mean_std_dataset(image_folder, IMAGE_TRANSFORM):
     std /= len(os.listdir(image_folder))
 
     return mean, std
+
+# Create dataset class
+class DroneImagesDataset(Dataset):
+    """ Dataset class for drone images
+
+    Args:
+        Dataset (.csv or Hugging Face dataset): dataset with images and labels
+    """
+    def __init__(self, dataset, own_dataset=False, transform=None):
+        self.own_dataset = own_dataset
+        if self.own_dataset:
+            self.annotations = pd.read_csv(dataset, skiprows=1, header=None)
+        else:
+            self.annotations = dataset
+        self.transform = transform
+
+    def __getitem__(self, index):
+        if self.own_dataset:
+            img_path = self.annotations.iloc[index, 0]
+            img_path = img_path.replace("\\", os.sep)
+            image = convert_image_dtype(read_image(img_path), torch.float)
+            y_label = torch.tensor(list(self.annotations.iloc[index, 1:]), dtype=torch.float32)
+        else:
+            image = transforms.ToTensor()(self.annotations[index]["image"])
+            y_label = torch.tensor([self.annotations[index]["left"], self.annotations[index]["forward"], self.annotations[index]["right"]], dtype=torch.float32)
+        
+        if self.transform:
+            image = self.transform(image)
+
+        return (image, y_label)
+    
+    def __len__(self):
+        return len(self.annotations)

@@ -4,9 +4,9 @@ Convolutional neural networks have excellent properties when it comes to compute
 Throughout the course I have developed two notebooks which guide you through the entire process: from data gathering and labeling, to CNN training and actual deployment on a drone. The deployment is performed using [Paparazzi UAV](https://github.com/paparazzi/paparazzi). The two notebooks are explained in a bit more detail below.
 
 ### Dataset generation:
-**Notebook: `Dataset_generation.ipynb`**
+**Notebook: `dataset_generation.ipynb`**
 
-This notebook can be used to generate a labeled dataset. The only prerequisite to use this notebook is to have an image dataset that is representative of the environment in which your drone will fly. It will then label the images based on monocular depth maps generated using [Depth-Anything](https://github.com/LiheYoung/Depth-Anything). If you already have a labeled dataset, you can move on to `CNN_training.ipynb`. Be aware that this notebook assumes the dataset format that is used in `Dataset_generation.ipynb`. Alternatively, I have uploaded my dataset containing 27754 images to Hugging Face. The option to use this dataset is included in the other notebook.
+This notebook can be used to generate a labeled dataset. The only prerequisite to use this notebook is to have an image dataset that is representative of the environment in which your drone will fly. It will then label the images based on monocular depth maps generated using [Depth-Anything](https://github.com/LiheYoung/Depth-Anything). If you already have a labeled dataset, you can move on to `CNN_training.ipynb`. Instead of creating you own dataset, you can also use the dataset that was developed during the course, it is uploaded to Hugging Face (see [here](https://huggingface.co/datasets/Timdb/AE4317-cyberzoo-tudelft)), and already integrated into `CNN_training.ipynb`.
 
 ### Training and tuning of CNN:
 **Notebook: `CNN_training.ipynb`**

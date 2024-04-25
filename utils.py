@@ -4,13 +4,13 @@ import numpy as np
 from tqdm import tqdm
 import pandas as pd
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from torchvision.io import read_image
-from torchvision.transforms.functional import convert_image_dtype
+from torchvision.transforms.functional import convert_image_dtype, to_tensor, hflip
 import matplotlib.pyplot as plt
 
-def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=3, top_bottom_crop=0, mirror=True, realistic=False):
+def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=3, top_bottom_crop=0, realistic=False):
     """ Generate labels for images in a folder. The labels are based on the depth image and are saved in a dataframe.
 
     Args:
@@ -19,7 +19,6 @@ def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=3, t
         labeled_images (pd.Dataframe): dataframe to save labels to
         n_regions (int, optional): Number of regions to split image into. Defaults to 3.
         top_bottom_crop (int, optional): Fraction to crop from top and bottom of image. Defaults to 0.
-        mirror (bool, optional): Also save mirrored versions of every image. Defaults to True.
         realistic (bool, optional): Make every image more realistic (only use for simulator images). Defaults to False.
 
     Returns:
@@ -42,16 +41,11 @@ def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=3, t
         # Make realistic and or mirror image
         if realistic:
             img_normal = make_realistic(img_normal)
-        if mirror:
-            img_normal_mirror = cv2.flip(img_normal, 0)
 
         # Save images
         cv2.imwrite(os.path.join(images_final_dir, filename), img_normal)
-        if mirror:
-            cv2.imwrite(os.path.join(images_final_dir, filename.strip(".jpg") + "_mirrored.jpg"), img_normal_mirror)
 
-        # Get dimensions
-        img_x = img_depth.shape[0]
+        # Get y dimension
         img_y = img_depth.shape[1]
 
         # Split image into n regions
@@ -66,12 +60,6 @@ def generate_labels(images_dir, images_final_dir, labeled_images, n_regions=3, t
         data_row.extend(action_list)
         labeled_images.loc[len(labeled_images)] = data_row
         
-        if mirror:
-            action_list_mirror = action_list[::-1]
-            data_row_mirror = [os.path.join(images_final_dir, filename.strip(".jpg") + "_mirrored.jpg")]
-            data_row_mirror.extend(action_list_mirror)
-            labeled_images.loc[len(labeled_images)] = data_row_mirror
-
     return labeled_images
 
 def make_realistic(img):
@@ -117,33 +105,90 @@ def plot_images(real_images_folder, sim_images_folder):
     ax[2].set_title('Realistic Sim Image')
     plt.show()
 
-def calc_mean_std_dataset(image_folder, IMAGE_TRANSFORM):
-    """ Calculate mean and std of dataset
+def calc_mean_std_dataset(train_dataset, IMAGE_TRANSFORM, own_dataset=False):
+    """ Calculate the mean and standard deviation of the dataset.
 
     Args:
-        image_folder (str): folder with images
-        IMAGE_TRANSFORM (torchvision.transforms): image transformation used
+        train_dataset (-): dataset to calculate mean and std for
+        IMAGE_TRANSFORM (transforms.Compose): transformation to apply to all images
+        own_dataset (bool, optional): whether the dataset is a custom dataset or not. Defaults to False.
 
     Returns:
-        (float, float): mean and std of dataset
+        float, float: mean and standard deviation of the dataset
     """
     # Set mean and std to 0
     mean = 0
     std = 0
 
-    # Loop through all images in folder and calculate mean and std
-    for filename in os.listdir(image_folder):
-        img_path = os.path.join(image_folder, filename)
-        img = convert_image_dtype(read_image(img_path), torch.float)
-        img = IMAGE_TRANSFORM(img)
-        mean += img.mean()
-        std += img.std()
+    # When using own dataset, calculate mean and std by looping through image folder
+    # When using dataset from huggingface, calculate mean and std by looping through dataset
+    if own_dataset:
+        filenames = pd.read_csv(train_dataset, skiprows=1, header=None).iloc[:, 0]
+        n_images = len(filenames)
+        for filename in filenames:
+            f = filename.replace("\\", os.sep)
+            image = convert_image_dtype(read_image(f), torch.float)
+            image = IMAGE_TRANSFORM(image)
+            mean += torch.mean(image)
+            std += torch.std(image)
+    else:
+        n_images = len(train_dataset)
+        for i in range(len(train_dataset)):
+            image = to_tensor(train_dataset[i]["image"])
+            image = IMAGE_TRANSFORM(image)
+            mean += torch.mean(image)
+            std += torch.std(image)
 
     # Calculate average mean and std
-    mean /= len(os.listdir(image_folder))
-    std /= len(os.listdir(image_folder))
+    mean /= n_images
+    std /= n_images
 
     return mean, std
+
+def generate_dataloaders(val_ratio, test_ratio, standard_transform, train_transform, train_dataset, test_dataset, batch_size, own_dataset=False):
+    """ Create DataLoaders for the training, validation, and test sets. If own_dataset is True, this dataset will be split into a training,
+    validation, and test set following the provided ratios. If own_dataset is False, the train_dataset will be split into a training and
+    validation set, while the test_dataset will be used as the test set.
+
+    Args:
+        val_ratio (float): ratio of the dataset to use for the validation set
+        test_ratio (float): ratio of the dataset to use for the test set
+        standard_transform (transforms.Compose): transformation to apply to all images
+        train_transform (transforms.Compose): transformation to optionally apply to training images
+        train_dataset (-): dataset to use for training
+        test_dataset (-): dataset to use for testing
+        batch_size (float): batch size to use for the DataLoaders
+        own_dataset (bool, optional): whether the dataset is a custom dataset or not. Defaults to False.
+
+    Returns:
+        DataLoader, DataLoader, DataLoader: DataLoaders for the training, validation, and test sets
+    """
+
+    # Create the datasets
+    train_dataset_full = DroneImagesDataset(train_dataset, own_dataset, transform=train_transform)
+    val_dataset_full = DroneImagesDataset(train_dataset, own_dataset, transform=standard_transform)
+    test_dataset_full = DroneImagesDataset(test_dataset, own_dataset, transform=standard_transform)
+
+    # Get indices for splitting the datasets
+    indices = torch.randperm(len(train_dataset_full)).tolist()
+
+    if own_dataset:
+        # Split the datasets
+        train_dataset = torch.utils.data.Subset(train_dataset_full, indices[:-int(len(indices)*(val_ratio+test_ratio))])
+        val_dataset = torch.utils.data.Subset(val_dataset_full, indices[-int(len(indices)*(val_ratio+test_ratio)):-int(len(indices)*test_ratio)])
+        test_dataset = torch.utils.data.Subset(test_dataset_full, indices[-int(len(indices)*test_ratio):])
+    else:
+        # Create the datasets
+        train_dataset = torch.utils.data.Subset(train_dataset_full, indices[:-int(len(indices)*(val_ratio))])
+        val_dataset = torch.utils.data.Subset(val_dataset_full, indices[-int(len(indices)*(val_ratio)):])
+        test_dataset = test_dataset_full
+
+    # Create DataLoaders for the training, validation, and test sets
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4, prefetch_factor=2, persistent_workers=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4, prefetch_factor=2, persistent_workers=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4, prefetch_factor=2, persistent_workers=True)
+
+    return train_loader, val_loader, test_loader
 
 # Create dataset class
 class DroneImagesDataset(Dataset):
@@ -152,28 +197,37 @@ class DroneImagesDataset(Dataset):
     Args:
         Dataset (.csv or Hugging Face dataset): dataset with images and labels
     """
-    def __init__(self, dataset, own_dataset=False, transform=None):
+    def __init__(self, dataset, own_dataset=False, transform=None, mirror=True):
         self.own_dataset = own_dataset
         if self.own_dataset:
             self.annotations = pd.read_csv(dataset, skiprows=1, header=None)
         else:
             self.annotations = dataset
         self.transform = transform
+        self.mirror = mirror
 
     def __getitem__(self, index):
+        m_index = index // 2 if self.mirror else index
         if self.own_dataset:
-            img_path = self.annotations.iloc[index, 0]
+            img_path = self.annotations.iloc[m_index, 0]
             img_path = img_path.replace("\\", os.sep)
             image = convert_image_dtype(read_image(img_path), torch.float)
-            y_label = torch.tensor(list(self.annotations.iloc[index, 1:]), dtype=torch.float32)
+            y_label = torch.tensor(list(self.annotations.iloc[m_index, 1:]), dtype=torch.float32)
         else:
-            image = transforms.ToTensor()(self.annotations[index]["image"])
-            y_label = torch.tensor([self.annotations[index]["left"], self.annotations[index]["forward"], self.annotations[index]["right"]], dtype=torch.float32)
+            image = to_tensor(self.annotations[m_index]["image"])
+            # TODO: update to make parametric with differing label length
+            y_label = torch.tensor([self.annotations[m_index]["left"], self.annotations[m_index]["forward"], self.annotations[m_index]["right"]], dtype=torch.float32)
         
         if self.transform:
             image = self.transform(image)
 
+        if self.mirror and index % 2 == 0:
+            image = hflip(image)
+            y_label = torch.flip(y_label, [0])
+
         return (image, y_label)
     
     def __len__(self):
+        if self.mirror:
+            return len(self.annotations) * 2
         return len(self.annotations)

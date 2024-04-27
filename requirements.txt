@@ -1,0 +1,10 @@
+datasets==2.19.0
+lightning==2.2.1
+matplotlib==3.5.1
+numpy==1.26.4
+opencv-python==4.9.0.80
+pandas==2.2.1
+torch==2.2.1
+torchsummary==1.5.1
+torchvision==0.17.1
+tqdm==4.66.2

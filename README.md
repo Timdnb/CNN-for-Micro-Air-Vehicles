@@ -1,7 +1,15 @@
 # CNNs for Micro Air Vehicles
 Convolutional neural networks have excellent properties when it comes to computer vision tasks such as image processing and classification. Therefore the use of CNNs for obstacle avoidance using only a monocular camera seems like a natural choice. However, CNNs quickly become computationally demanding, a property not desired, especially on Micro Air Vehicles (MAV). As part of the AE4317 Autonomous Flight of Micro Air Vehicles course at Delft University of Technology, I took on the challenge of using CNNs for obstacle avoidance on a Parrot Bebop 2.
 
-Throughout the course I have developed two notebooks which guide you through the entire process: from data gathering and labeling, to CNN training and actual deployment on a drone. The deployment is performed using [Paparazzi UAV](https://github.com/paparazzi/paparazzi). The two notebooks are explained in a bit more detail below.
+Throughout the course I have developed two notebooks which guide you through the entire process: from data gathering and labeling, to CNN training and actual deployment on a drone. The deployment is performed using [Paparazzi UAV](https://github.com/paparazzi/paparazzi). The installation process and the two notebooks are explained in a bit more detail below.
+
+### Installation
+All notebooks have been tested using Python 3.10.12
+```bash
+git clone git@github.com:Timdnb/CNN-for-Micro-Air-Vehicles.git
+cd CNN-for-Micro-Air-Vehicles
+pip install -r requirements.txt
+```
 
 ### Dataset generation:
 **Notebook: `dataset_generation.ipynb`**
